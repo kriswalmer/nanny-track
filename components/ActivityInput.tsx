@@ -1,0 +1,223 @@
+'use client';
+
+import { useState } from 'react';
+import { Activity, addActivity, isClockedIn, getTodayClockInTime } from '@/lib/supabase';
+
+interface ActivityInputProps {
+  onActivityAdded: (activity: Activity) => void;
+  activities: Activity[];
+}
+
+export default function ActivityInput({ onActivityAdded, activities }: ActivityInputProps) {
+  const [activityType, setActivityType] = useState<'diaper' | 'feeding' | 'sleep' | 'food' | 'other' | 'injury'>('diaper');
+  const [diaperType, setDiaperType] = useState<'wet' | 'dry' | 'poop'>('wet');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [time, setTime] = useState(new Date().toISOString().slice(11, 16));
+  const [loading, setLoading] = useState(false);
+  const [clockLoading, setClockLoading] = useState(false);
+
+  const clockedIn = isClockedIn(activities);
+  const clockInTime = getTodayClockInTime(activities);
+
+  const handleQuickClockInOut = async (action: 'in' | 'out') => {
+    setClockLoading(true);
+    try {
+      const newActivity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> = {
+        timestamp: new Date().toISOString(),
+        type: action === 'in' ? 'clockIn' : 'clockOut',
+      };
+
+      const activity = await addActivity(newActivity);
+      onActivityAdded(activity);
+    } catch (error) {
+      console.error('Failed to clock in/out:', error);
+      alert('Failed to clock in/out');
+    } finally {
+      setClockLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const [hours, minutes] = time.split(':');
+      const timestamp = new Date();
+      timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      const newActivity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> = {
+        timestamp: timestamp.toISOString(),
+        type: activityType,
+        ...(activityType === 'diaper' && { diaperType }),
+        ...(activityType === 'feeding' && amount && { amount: parseFloat(amount), unit: 'oz' }),
+        ...(description && { description }),
+      };
+
+      const activity = await addActivity(newActivity);
+      onActivityAdded(activity);
+
+      // Reset form
+      setAmount('');
+      setDescription('');
+      setTime(new Date().toISOString().slice(11, 16));
+      setActivityType('diaper');
+      setDiaperType('wet');
+    } catch (error) {
+      console.error('Failed to add activity:', error);
+      alert('Failed to add activity');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Clock In/Out Section */}
+      <div className="rounded-lg shadow-lg p-6 border-4" style={{ background: 'linear-gradient(to bottom right, #004C54, #003d46)', borderColor: '#A5ACAF' }}>
+        <div className="space-y-3">
+          {clockInTime && (
+            <p className="text-sm font-semibold" style={{ color: '#A5ACAF' }}>
+              Clocked in: <span className="font-bold text-white">{clockInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleQuickClockInOut('in')}
+              disabled={clockLoading || clockedIn}
+              className="flex-1 py-3 px-4 rounded-lg font-bold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 border-2"
+              style={clockedIn ? { background: '#999999' } : { background: '#004C54', borderColor: '#A5ACAF' }}
+              onMouseEnter={(e) => !clockedIn && (e.currentTarget.style.background = '#003d46')}
+              onMouseLeave={(e) => !clockedIn && (e.currentTarget.style.background = '#004C54')}
+            >
+              {clockLoading ? '⏳' : '🕐'} Clock In
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickClockInOut('out')}
+              disabled={clockLoading || !clockedIn}
+              className="flex-1 py-3 px-4 rounded-lg font-bold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 border-2"
+              style={!clockedIn ? { background: '#999999' } : { background: '#A5ACAF', borderColor: '#004C54' }}
+              onMouseEnter={(e) => clockedIn && (e.currentTarget.style.background = '#8e9499')}
+              onMouseLeave={(e) => clockedIn && (e.currentTarget.style.background = '#A5ACAF')}
+            >
+              {clockLoading ? '⏳' : '🚪'} Clock Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Logging Section */}
+      <div className="bg-white rounded-lg shadow p-6 sticky top-4 border-l-4" style={{ borderColor: '#004C54' }}>
+        <h2 className="text-lg font-semibold mb-4 text-gray-900">Log Activity</h2>
+
+        {/* Activity Type */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+          <div className="grid grid-cols-2 gap-2">
+            {(['diaper', 'feeding', 'sleep', 'food', 'other', 'injury'] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setActivityType(type)}
+                className={`py-2 px-3 rounded-lg font-medium text-sm transition text-white`}
+                style={activityType === type ? { background: '#004C54' } : { background: '#e5e7eb', color: '#374151' }}
+                onMouseEnter={(e) => activityType !== type && (e.currentTarget.style.background = '#d1d5db')}
+                onMouseLeave={(e) => activityType !== type && (e.currentTarget.style.background = '#e5e7eb')}
+              >
+                {type === 'diaper' && '💩'}
+                {type === 'feeding' && '🍼'}
+                {type === 'sleep' && '😴'}
+                {type === 'food' && '🍽️'}
+                {type === 'other' && '📝'}
+                {type === 'injury' && '🩹'}
+                {' ' + type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Diaper Type */}
+        {activityType === 'diaper' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Diaper Type</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['wet', 'dry', 'poop'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setDiaperType(type)}
+                  className="py-2 px-3 rounded-lg font-medium text-sm transition"
+                  style={diaperType === type ? { background: '#004C54', color: '#fff' } : { background: '#e5e7eb', color: '#374151' }}
+                  onMouseEnter={(e) => diaperType !== type && (e.currentTarget.style.background = '#d1d5db')}
+                  onMouseLeave={(e) => diaperType !== type && (e.currentTarget.style.background = '#e5e7eb')}
+                >
+                  {type === 'wet' && '💧 Wet'}
+                  {type === 'dry' && '✨ Dry'}
+                  {type === 'poop' && '💩 Poop'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Amount for Feeding */}
+        {activityType === 'feeding' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Amount (oz)</label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="e.g., 4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+        )}
+
+        {/* Description */}
+        {(activityType === 'food' || activityType === 'other' || activityType === 'injury') && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {activityType === 'injury' ? 'Injury Details' : 'Description'}
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={activityType === 'injury' ? 'e.g., scraped knee' : 'e.g., oatmeal with banana'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+              style={{ '--tw-ring-color': '#004C54' } as React.CSSProperties}
+            />
+          </div>
+        )}
+
+        {/* Time */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        {/* Submit Button */}
+          <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 px-4 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: '#004C54' }}
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = '#003d46')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = '#004C54')}>
+            {loading ? 'Saving...' : '➕ Log Activity'}
+        </button>
+      </div>
+    </form>
+  );
+}
