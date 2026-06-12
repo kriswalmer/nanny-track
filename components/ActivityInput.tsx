@@ -200,12 +200,46 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         {/* Time */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const d = new Date(`1970-01-01T${time}`);
+                d.setMinutes(d.getMinutes() - 5);
+                setTime(d.toTimeString().slice(0, 5));
+              }}
+              className="px-3 py-2 rounded-lg font-bold text-white border-2 active:scale-95 transition"
+              style={{ background: '#004C54', borderColor: '#003d46' }}
+            >
+              −5
+            </button>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-center text-lg font-semibold"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const d = new Date(`1970-01-01T${time}`);
+                d.setMinutes(d.getMinutes() + 5);
+                setTime(d.toTimeString().slice(0, 5));
+              }}
+              className="px-3 py-2 rounded-lg font-bold text-white border-2 active:scale-95 transition"
+              style={{ background: '#004C54', borderColor: '#003d46' }}
+            >
+              +5
+            </button>
+            <button
+              type="button"
+              onClick={() => setTime(new Date().toTimeString().slice(0, 5))}
+              className="px-3 py-2 rounded-lg font-bold text-white border-2 active:scale-95 transition text-sm"
+              style={{ background: '#A5ACAF', borderColor: '#004C54', color: '#1a1a1a' }}
+            >
+              Now
+            </button>
+          </div>
         </div>
 
         {/* Submit Button */}
