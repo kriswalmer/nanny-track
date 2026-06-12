@@ -54,7 +54,8 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
     try {
       const [hours, minutes] = time.split(':');
       const etDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // YYYY-MM-DD
-      const etOffset = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', timeZoneName: 'shortOffset' }).match(/GMT([+-]\d{1,2})/)?.[1] ?? '-5';
+      const etOffsetMatch = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', timeZoneName: 'shortOffset' }).match(/GMT([+-])(\d{1,2})/);
+      const etOffset = etOffsetMatch ? `${etOffsetMatch[1]}${etOffsetMatch[2].padStart(2, '0')}` : '-05';
       const timestamp = new Date(`${etDate}T${hours.padStart(2, '0')}:${minutes}:00${etOffset}:00`);
 
       const newActivity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> = {
