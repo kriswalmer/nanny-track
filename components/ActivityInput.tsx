@@ -8,12 +8,21 @@ interface ActivityInputProps {
   activities: Activity[];
 }
 
+function getEasternTime() {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date()).replace('24:', '00:');
+}
+
 export default function ActivityInput({ onActivityAdded, activities }: ActivityInputProps) {
   const [activityType, setActivityType] = useState<'diaper' | 'bottle' | 'sleep' | 'food' | 'other' | 'medicine' | 'milestone'>('diaper');
   const [diaperType, setDiaperType] = useState<'wet' | 'dry' | 'poop'>('wet');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [time, setTime] = useState(new Date().toISOString().slice(11, 16));
+  const [time, setTime] = useState(getEasternTime);
   const [loading, setLoading] = useState(false);
   const [clockLoading, setClockLoading] = useState(false);
 
@@ -44,8 +53,9 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
 
     try {
       const [hours, minutes] = time.split(':');
-      const timestamp = new Date();
-      timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      const etDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // YYYY-MM-DD
+      const etOffset = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', timeZoneName: 'shortOffset' }).match(/GMT([+-]\d{1,2})/)?.[1] ?? '-5';
+      const timestamp = new Date(`${etDate}T${hours.padStart(2, '0')}:${minutes}:00${etOffset}:00`);
 
       const newActivity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt'> = {
         timestamp: timestamp.toISOString(),
@@ -61,7 +71,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
       // Reset form
       setAmount('');
       setDescription('');
-      setTime(new Date().toISOString().slice(11, 16));
+      setTime(getEasternTime());
       setActivityType('diaper' as const);
       setDiaperType('wet');
     } catch (error) {
@@ -233,7 +243,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
             </button>
             <button
               type="button"
-              onClick={() => setTime(new Date().toTimeString().slice(0, 5))}
+              onClick={() => setTime(getEasternTime())}
               className="px-3 py-2 rounded-lg font-bold text-white border-2 active:scale-95 transition text-sm"
               style={{ background: '#A5ACAF', borderColor: '#004C54', color: '#1a1a1a' }}
             >
