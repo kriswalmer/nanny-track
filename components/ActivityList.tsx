@@ -47,7 +47,7 @@ export default function ActivityList({ activities, onActivityDeleted }: Activity
     switch (activity.type) {
       case 'diaper':
         return activity.diaperType === 'poop' ? '💩' : activity.diaperType === 'dry' ? '✨' : '💧';
-      case 'feeding':
+      case 'bottle':
         return '🍼';
       case 'sleep':
         return '😴';
@@ -55,8 +55,10 @@ export default function ActivityList({ activities, onActivityDeleted }: Activity
         return '🍽️';
       case 'other':
         return '📝';
-      case 'injury':
-        return '🩹';
+      case 'medicine':
+        return '💊';
+      case 'milestone':
+        return '🌟';
       case 'clockIn':
         return '🕐';
       case 'clockOut':
@@ -70,16 +72,18 @@ export default function ActivityList({ activities, onActivityDeleted }: Activity
     switch (activity.type) {
       case 'diaper':
         return `Diaper - ${activity.diaperType ? activity.diaperType.charAt(0).toUpperCase() + activity.diaperType.slice(1) : 'Unknown'}`;
-      case 'feeding':
-        return `Feeding ${activity.amount ? `- ${activity.amount} oz` : ''}`;
+      case 'bottle':
+        return `Bottle ${activity.amount ? `- ${activity.amount} oz` : ''}`;
       case 'sleep':
         return 'Sleep/Nap';
       case 'food':
         return `Food - ${activity.description || 'Unknown'}`;
       case 'other':
         return `Other - ${activity.description || 'Activity'}`;
-      case 'injury':
-        return `Injury - ${activity.description || 'Unknown'}`;
+      case 'medicine':
+        return `Medicine - ${activity.description || 'Unknown'}`;
+      case 'milestone':
+        return `Milestone - ${activity.description || 'Unknown'}`;
       case 'clockIn':
         return 'Clocked In';
       case 'clockOut':

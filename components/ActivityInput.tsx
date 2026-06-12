@@ -9,7 +9,7 @@ interface ActivityInputProps {
 }
 
 export default function ActivityInput({ onActivityAdded, activities }: ActivityInputProps) {
-  const [activityType, setActivityType] = useState<'diaper' | 'feeding' | 'sleep' | 'food' | 'other' | 'injury'>('diaper');
+  const [activityType, setActivityType] = useState<'diaper' | 'bottle' | 'sleep' | 'food' | 'other' | 'medicine' | 'milestone'>('diaper');
   const [diaperType, setDiaperType] = useState<'wet' | 'dry' | 'poop'>('wet');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -51,7 +51,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         timestamp: timestamp.toISOString(),
         type: activityType,
         ...(activityType === 'diaper' && { diaperType }),
-        ...(activityType === 'feeding' && amount && { amount: parseFloat(amount), unit: 'oz' }),
+        ...(activityType === 'bottle' && amount && { amount: parseFloat(amount), unit: 'oz' }),
         ...(description && { description }),
       };
 
@@ -62,7 +62,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
       setAmount('');
       setDescription('');
       setTime(new Date().toISOString().slice(11, 16));
-      setActivityType('diaper');
+      setActivityType('diaper' as const);
       setDiaperType('wet');
     } catch (error) {
       console.error('Failed to add activity:', error);
@@ -117,7 +117,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
           <div className="grid grid-cols-2 gap-2">
-            {(['diaper', 'feeding', 'sleep', 'food', 'other', 'injury'] as const).map((type) => (
+            {(['diaper', 'bottle', 'sleep', 'food', 'other', 'medicine', 'milestone'] as const).map((type) => (
               <button
                 key={type}
                 type="button"
@@ -128,11 +128,12 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
                 onMouseLeave={(e) => activityType !== type && (e.currentTarget.style.background = '#e5e7eb')}
               >
                 {type === 'diaper' && '💩'}
-                {type === 'feeding' && '🍼'}
+                {type === 'bottle' && '🍼'}
                 {type === 'sleep' && '😴'}
                 {type === 'food' && '🍽️'}
                 {type === 'other' && '📝'}
-                {type === 'injury' && '🩹'}
+                {type === 'medicine' && '💊'}
+                {type === 'milestone' && '🌟'}
                 {' ' + type.charAt(0).toUpperCase() + type.slice(1)}
               </button>
             ))}
@@ -164,7 +165,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         )}
 
         {/* Amount for Feeding */}
-        {activityType === 'feeding' && (
+        {activityType === 'bottle' && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Amount (oz)</label>
             <input
@@ -180,16 +181,16 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         )}
 
         {/* Description */}
-        {(activityType === 'food' || activityType === 'other' || activityType === 'injury') && (
+        {(activityType === 'food' || activityType === 'other' || activityType === 'medicine' || activityType === 'milestone') && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {activityType === 'injury' ? 'Injury Details' : 'Description'}
+              {activityType === 'medicine' ? 'Medicine Name' : activityType === 'milestone' ? 'Milestone' : 'Description'}
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder={activityType === 'injury' ? 'e.g., scraped knee' : 'e.g., oatmeal with banana'}
+              placeholder={activityType === 'medicine' ? 'e.g., Tylenol 2.5ml' : activityType === 'milestone' ? 'e.g., first smile' : 'e.g., oatmeal with banana'}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
               style={{ '--tw-ring-color': '#004C54' } as React.CSSProperties}
             />

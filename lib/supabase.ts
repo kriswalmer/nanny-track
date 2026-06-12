@@ -12,7 +12,7 @@ export const supabase = !isDemoMode ? createClient(supabaseUrl, supabaseAnonKey)
 export interface Activity {
   id: string;
   timestamp: string;
-  type: 'diaper' | 'feeding' | 'sleep' | 'food' | 'other' | 'clockIn' | 'clockOut' | 'injury';
+  type: 'diaper' | 'bottle' | 'sleep' | 'food' | 'other' | 'medicine' | 'milestone' | 'clockIn' | 'clockOut';
   diaperType?: 'wet' | 'dry' | 'poop';
   amount?: number;
   unit?: 'oz' | 'ml';
