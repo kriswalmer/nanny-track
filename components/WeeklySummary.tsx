@@ -61,7 +61,7 @@ export default function WeeklySummary({ activities }: WeeklySummaryProps) {
 
   // Count activities
   const diaperChanges = activities.filter((a) => a.type === 'diaper').length;
-  const feedings = activities.filter((a) => a.type === 'feeding').length;
+  const feedings = activities.filter((a) => a.type === 'bottle').length;
   const naps = activities.filter((a) => a.type === 'sleep').length;
 
   const formatDate = (date: Date) => {
