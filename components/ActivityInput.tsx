@@ -20,6 +20,7 @@ function getEasternTime() {
 export default function ActivityInput({ onActivityAdded, activities }: ActivityInputProps) {
   const [activityType, setActivityType] = useState<'diaper' | 'bottle' | 'sleep' | 'food' | 'other' | 'medicine' | 'milestone'>('diaper');
   const [diaperType, setDiaperType] = useState<'wet' | 'dry' | 'poop'>('wet');
+  const [sleepType, setSleepType] = useState<'asleep' | 'awake'>('asleep');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [time, setTime] = useState(getEasternTime);
@@ -62,6 +63,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
         timestamp: timestamp.toISOString(),
         type: activityType,
         ...(activityType === 'diaper' && { diaperType }),
+        ...(activityType === 'sleep' && { sleepType }),
         ...(activityType === 'bottle' && amount && { amount: parseFloat(amount), unit: 'oz' }),
         ...(description && { description }),
       };
@@ -75,6 +77,7 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
       setTime(getEasternTime());
       setActivityType('diaper' as const);
       setDiaperType('wet');
+      setSleepType('asleep');
     } catch (error) {
       console.error('Failed to add activity:', error);
       alert('Failed to add activity');
@@ -169,6 +172,28 @@ export default function ActivityInput({ onActivityAdded, activities }: ActivityI
                   {type === 'wet' && '💧 Wet'}
                   {type === 'dry' && '✨ Dry'}
                   {type === 'poop' && '💩 Poop'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sleep Type */}
+        {activityType === 'sleep' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Sleep Event</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(['asleep', 'awake'] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setSleepType(type)}
+                  className="py-2 px-3 rounded-lg font-medium text-sm transition"
+                  style={sleepType === type ? { background: '#004C54', color: '#fff' } : { background: '#e5e7eb', color: '#374151' }}
+                  onMouseEnter={(e) => sleepType !== type && (e.currentTarget.style.background = '#d1d5db')}
+                  onMouseLeave={(e) => sleepType !== type && (e.currentTarget.style.background = '#e5e7eb')}
+                >
+                  {type === 'asleep' ? '😴 Fell Asleep' : '👀 Awoke'}
                 </button>
               ))}
             </div>

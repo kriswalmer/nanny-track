@@ -14,6 +14,7 @@ export interface Activity {
   timestamp: string;
   type: 'diaper' | 'bottle' | 'sleep' | 'food' | 'other' | 'medicine' | 'milestone' | 'clockIn' | 'clockOut';
   diaperType?: 'wet' | 'dry' | 'poop';
+  sleepType?: 'asleep' | 'awake';
   amount?: number;
   unit?: 'oz' | 'ml';
   description?: string;

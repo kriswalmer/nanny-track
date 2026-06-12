@@ -50,7 +50,7 @@ export default function ActivityList({ activities, onActivityDeleted }: Activity
       case 'bottle':
         return '🍼';
       case 'sleep':
-        return '😴';
+        return activity.sleepType === 'awake' ? '👀' : '😴';
       case 'food':
         return '🍽️';
       case 'other':
@@ -75,7 +75,7 @@ export default function ActivityList({ activities, onActivityDeleted }: Activity
       case 'bottle':
         return `Bottle ${activity.amount ? `- ${activity.amount} oz` : ''}`;
       case 'sleep':
-        return 'Sleep/Nap';
+        return activity.sleepType === 'awake' ? 'Awoke' : 'Fell Asleep';
       case 'food':
         return `Food - ${activity.description || 'Unknown'}`;
       case 'other':
